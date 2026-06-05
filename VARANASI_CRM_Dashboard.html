@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="refresh" content="30">
+<title>Varanasi CRM Dashboard — DR SERVICE 25-26</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0d14; --surface: #111622; --surface2: #161d2e;
+    --border: #1e2a42; --accent: #00c6ff; --accent2: #f59e0b;
+    --accent3: #10b981; --accent4: #ef4444; --accent5: #8b5cf6;
+    --text: #e8edf5; --text-dim: #8a99b4; --text-muted: #4a5568;
+    --glow: 0 0 20px rgba(0,198,255,0.15);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden; }
+  body::before {
+    content:''; position:fixed; inset:0; z-index:0;
+    background-image: linear-gradient(rgba(0,198,255,0.03) 1px,transparent 1px), linear-gradient(90deg,rgba(0,198,255,0.03) 1px,transparent 1px);
+    background-size:40px 40px; pointer-events:none;
+  }
+  .wrapper { position:relative; z-index:1; max-width:1400px; margin:0 auto; padding:20px; }
+  header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 28px; margin-bottom:24px; background:var(--surface);
+    border:1px solid var(--border); border-top:3px solid var(--accent);
+    border-radius:8px; box-shadow:var(--glow);
+  }
+  .header-left { display:flex; align-items:center; gap:14px; }
+  .logo-badge {
+    width:44px; height:44px; border-radius:10px;
+    background:linear-gradient(135deg,#00c6ff,#0072ff);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Rajdhani',sans-serif; font-weight:700; font-size:16px; color:#fff;
+    box-shadow:0 0 14px rgba(0,198,255,0.4);
+  }
+  .header-title h1 { font-family:'Rajdhani',sans-serif; font-weight:700; font-size:22px; color:var(--text); letter-spacing:0.5px; }
+  .header-title p { font-size:11px; color:var(--text-dim); margin-top:1px; letter-spacing:0.8px; text-transform:uppercase; }
+  .header-right { display:flex; align-items:center; gap:10px; }
+  .live-badge {
+    display:flex; align-items:center; gap:6px;
+    background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3);
+    padding:5px 12px; border-radius:20px; font-size:11px; color:var(--accent3);
+  }
+  .live-dot { width:6px; height:6px; border-radius:50%; background:var(--accent3); animation:pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+  .fy-tag {
+    font-family:'Rajdhani',sans-serif; font-size:13px; font-weight:600;
+    color:var(--accent); background:rgba(0,198,255,0.08);
+    border:1px solid rgba(0,198,255,0.2); padding:5px 14px; border-radius:6px;
+  }
+  .updated-tag { font-size:10px; color:var(--text-muted); }
+  .filters-bar {
+    display:flex; flex-wrap:wrap; gap:10px; align-items:center;
+    margin-bottom:20px; padding:14px 20px;
+    background:var(--surface); border:1px solid var(--border); border-radius:8px;
+  }
+  .filters-bar label { font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.7px; margin-right:4px; }
+  .filters-bar select {
+    background:var(--bg); color:var(--text); border:1px solid var(--border);
+    border-radius:6px; padding:6px 10px; font-size:12px; font-family:'Inter',sans-serif;
+    cursor:pointer; min-width:140px; transition:border-color 0.2s;
+  }
+  .filters-bar select:hover { border-color:var(--accent); }
+  .filter-group { display:flex; align-items:center; gap:6px; }
+  .btn-reset {
+    background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3);
+    color:var(--accent4); padding:6px 14px; border-radius:6px;
+    font-size:12px; cursor:pointer; transition:all 0.2s; font-family:'Inter';
+  }
+  .btn-reset:hover { background:rgba(239,68,68,0.2); }
+  .kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:20px; }
+  .kpi-card {
+    background:var(--surface); border:1px solid var(--border); border-radius:10px;
+    padding:20px; position:relative; overflow:hidden; transition:transform 0.2s,box-shadow 0.2s;
+  }
+  .kpi-card:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,0.3); }
+  .kpi-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+  .kpi-card.c1::before { background:linear-gradient(90deg,var(--accent),transparent); }
+  .kpi-card.c2::before { background:linear-gradient(90deg,var(--accent2),transparent); }
+  .kpi-card.c3::before { background:linear-gradient(90deg,var(--accent3),transparent); }
+  .kpi-card.c4::before { background:linear-gradient(90deg,var(--accent5),transparent); }
+  .kpi-icon { width:38px; height:38px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:18px; margin-bottom:14px; }
+  .c1 .kpi-icon { background:rgba(0,198,255,0.1); } .c2 .kpi-icon { background:rgba(245,158,11,0.1); }
+  .c3 .kpi-icon { background:rgba(16,185,129,0.1); } .c4 .kpi-icon { background:rgba(139,92,246,0.1); }
+  .kpi-label { font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
+  .kpi-value { font-family:'Rajdhani',sans-serif; font-weight:700; font-size:26px; line-height:1; }
+  .c1 .kpi-value { color:var(--accent); } .c2 .kpi-value { color:var(--accent2); }
+  .c3 .kpi-value { color:var(--accent3); } .c4 .kpi-value { color:var(--accent5); }
+  .kpi-sub { font-size:11px; color:var(--text-muted); margin-top:6px; }
+  .kpi-bg-num { position:absolute; right:14px; bottom:8px; font-family:'Rajdhani'; font-size:48px; font-weight:700; opacity:0.04; color:#fff; line-height:1; }
+  .charts-grid { display:grid; gap:16px; }
+  .row-equal { grid-template-columns:1fr 1fr; }
+  .chart-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:20px; position:relative; overflow:hidden; }
+  .chart-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .chart-title { font-family:'Rajdhani',sans-serif; font-weight:600; font-size:15px; color:var(--text); letter-spacing:0.3px; }
+  .chart-subtitle { font-size:10px; color:var(--text-dim); margin-top:2px; }
+  .chart-badge { font-size:10px; padding:3px 10px; border-radius:12px; font-weight:500; }
+  .badge-blue { background:rgba(0,198,255,0.12); color:var(--accent); border:1px solid rgba(0,198,255,0.2); }
+  .badge-amber { background:rgba(245,158,11,0.12); color:var(--accent2); border:1px solid rgba(245,158,11,0.2); }
+  .badge-green { background:rgba(16,185,129,0.12); color:var(--accent3); border:1px solid rgba(16,185,129,0.2); }
+  .data-table { width:100%; border-collapse:collapse; font-size:12px; }
+  .data-table thead tr { background:rgba(255,255,255,0.03); }
+  .data-table th { text-align:left; padding:13px 16px; font-size:11px; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-dim); font-weight:500; border-bottom:1px solid var(--border); }
+  .data-table td { padding:13px 16px; border-bottom:1px solid rgba(255,255,255,0.04); font-size:13px; }
+  .data-table tr:last-child td { border-bottom:none; }
+  .data-table tr:hover td { background:rgba(255,255,255,0.02); }
+  .rank-badge { display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:6px; font-size:12px; font-weight:700; font-family:'Rajdhani'; }
+  .rank-1 { background:rgba(245,158,11,0.2); color:var(--accent2); }
+  .rank-2 { background:rgba(148,163,184,0.15); color:#94a3b8; }
+  .rank-3 { background:rgba(180,120,60,0.15); color:#b47c3c; }
+  .rank-n { background:rgba(255,255,255,0.06); color:var(--text-dim); }
+  .amount-col { font-family:'Rajdhani'; font-weight:600; font-size:15px; }
+  .table-scroll { max-height:280px; overflow-y:auto; }
+  .table-scroll::-webkit-scrollbar { width:4px; }
+  .table-scroll::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+  footer { margin-top:24px; padding:14px 20px; background:var(--surface); border:1px solid var(--border); border-radius:8px; display:flex; justify-content:space-between; align-items:center; font-size:11px; color:var(--text-muted); }
+  .section-gap { margin-bottom:16px; }
+  @media(max-width:900px) { .kpi-row { grid-template-columns:repeat(2,1fr); } .row-equal { grid-template-columns:1fr; } }
+  @media(max-width:480px) { .kpi-row { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header>
+    <div class="header-left">
+      <div class="logo-badge">CRM</div>
+      <div class="header-title">
+        <h1>VARANASI CRM ANALYTICS</h1>
+        <p>Dr Service Performance Dashboard &nbsp;·&nbsp; Auto-Synced from Excel</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="updated-tag">🔄 Updated: 05 Jun 2026, 02:25 PM</div>
+      <div class="live-badge"><span class="live-dot"></span> Live Data</div>
+      <div class="fy-tag">FY 2025–26</div>
+    </div>
+  </header>
+
+  <div class="filters-bar">
+    <div class="filter-group"><label>Doctor</label>
+      <select id="filterDoctor" onchange="applyFilters()"><option value="">All Doctors</option></select>
+    </div>
+    <div class="filter-group"><label>Product</label>
+      <select id="filterProduct" onchange="applyFilters()"><option value="">All Products</option></select>
+    </div>
+    <div class="filter-group"><label>Chemist</label>
+      <select id="filterChemist" onchange="applyFilters()"><option value="">All Chemists</option></select>
+    </div>
+    <div class="filter-group"><label>Month From</label>
+      <select id="filterMonthFrom" onchange="applyFilters()"><option value="">All</option></select>
+    </div>
+    <div class="filter-group"><label>Month To</label>
+      <select id="filterMonthTo" onchange="applyFilters()"><option value="">All</option></select>
+    </div>
+    <button class="btn-reset" onclick="resetFilters()">⟳ Reset</button>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi-card c1"><div class="kpi-icon">💊</div><div class="kpi-label">Total CRM Amount (20%)</div><div class="kpi-value" id="kpi-crm">₹0</div><div class="kpi-sub" id="kpi-crm-sub"></div><div class="kpi-bg-num">₹</div></div>
+    <div class="kpi-card c2"><div class="kpi-icon">📋</div><div class="kpi-label">Total Prescription Amount</div><div class="kpi-value" id="kpi-pres">₹0</div><div class="kpi-sub" id="kpi-pres-sub"></div><div class="kpi-bg-num">Rx</div></div>
+    <div class="kpi-card c3"><div class="kpi-icon">📦</div><div class="kpi-label">Total Quantity Sold</div><div class="kpi-value" id="kpi-qty">0</div><div class="kpi-sub" id="kpi-qty-sub"></div><div class="kpi-bg-num">Qty</div></div>
+    <div class="kpi-card c4"><div class="kpi-icon">🏪</div><div class="kpi-label">Sale as per PTR</div><div class="kpi-value" id="kpi-ptr">₹0</div><div class="kpi-sub" id="kpi-ptr-sub"></div><div class="kpi-bg-num">PTR</div></div>
+  </div>
+
+  <div class="charts-grid section-gap" style="grid-template-columns:1fr;">
+    <div class="chart-card">
+      <div class="chart-header"><div><div class="chart-title">📈 Monthly CRM & Prescription Trend</div><div class="chart-subtitle">CRM Amount (20%) vs Prescription Amount over time</div></div><span class="chart-badge badge-blue">Line Chart</span></div>
+      <canvas id="monthlyTrendChart" height="55"></canvas>
+    </div>
+  </div>
+
+  <div class="charts-grid section-gap" style="grid-template-columns:1fr;">
+    <div class="chart-card">
+      <div class="chart-header"><div><div class="chart-title">📊 Monthly Qty Sold</div><div class="chart-subtitle">Units dispatched per month</div></div><span class="chart-badge badge-green">Bar</span></div>
+      <canvas id="monthlyQtyChart" height="55"></canvas>
+    </div>
+  </div>
+
+  <div class="charts-grid section-gap" style="grid-template-columns:1fr;">
+    <div class="chart-card">
+      <div class="chart-header"><div><div class="chart-title">👨‍⚕️ Top Doctors by CRM Amount</div><div class="chart-subtitle">Ranked by CRM contribution</div></div><span class="chart-badge badge-amber">Top 10</span></div>
+      <div class="table-scroll" style="max-height:420px;">
+        <table class="data-table" style="font-size:14px;">
+          <thead><tr><th style="width:60px;">#</th><th>Doctor Name</th><th>CRM Amt</th><th>Pres. Amt</th><th>Qty</th></tr></thead>
+          <tbody id="doctorTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="charts-grid section-gap" style="grid-template-columns:1fr;">
+    <div class="chart-card">
+      <div class="chart-header"><div><div class="chart-title">🧪 Product-wise CRM Share</div><div class="chart-subtitle">Top 10 products by CRM amount</div></div><span class="chart-badge badge-blue">Donut</span></div>
+      <div style="max-width:800px;margin:0 auto;"><canvas id="productPieChart" height="80"></canvas></div>
+    </div>
+  </div>
+
+  <div class="charts-grid row-equal section-gap">
+    <div class="chart-card">
+      <div class="chart-header"><div><div class="chart-title">🏪 Top Chemists by CRM Amount</div><div class="chart-subtitle">Top 10 chemist channels</div></div><span class="chart-badge badge-green">Horizontal Bar</span></div>
+      <canvas id="chemistChart" height="160"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header"><div><div class="chart-title">📊 Doctor CRM Bar Comparison</div><div class="chart-subtitle">CRM vs Prescription amount per doctor</div></div><span class="chart-badge badge-amber">Grouped Bar</span></div>
+      <canvas id="doctorBarChart" height="160"></canvas>
+    </div>
+  </div>
+
+  <div class="charts-grid row-equal section-gap">
+    <div class="chart-card">
+      <div class="chart-header"><div><div class="chart-title">📦 Product-wise Quantity & CRM</div><div class="chart-subtitle">All products ranked by CRM</div></div><span class="chart-badge badge-blue">Table</span></div>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>#</th><th>Product</th><th>CRM Amt</th><th>Qty</th><th>Share</th></tr></thead>
+          <tbody id="productTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header"><div><div class="chart-title">📉 Monthly Sale as per PTR</div><div class="chart-subtitle">Total PTR sale trend over months</div></div><span class="chart-badge badge-green">Area Chart</span></div>
+      <canvas id="ptrTrendChart" height="160"></canvas>
+    </div>
+  </div>
+
+  <footer>
+    <span>📁 Source: VARANASI_CRM_DATA.XLSX — Sheet: Sheet1 &nbsp;|&nbsp; <span id="totalRows">933</span> records</span>
+    <span>🔄 Auto-refresh every 30s &nbsp;·&nbsp; Last updated: 05 Jun 2026, 02:25 PM</span>
+  </footer>
+</div>
+
+<script>
+const RAW = {"monthly": [{"MONTH_SORT": "2024-02", "MONTH_LABEL": "Feb 24", "CRM Amt (20%)": 789.1525, "PRES. AMT": 3551.1864, "Qty": 12.0, "Sale as per PTR": 3945.7627}, {"MONTH_SORT": "2024-03", "MONTH_LABEL": "Mar 24", "CRM Amt (20%)": 1018.2857, "PRES. AMT": 4582.2857, "Qty": 60.0, "Sale as per PTR": 5091.4286}, {"MONTH_SORT": "2024-04", "MONTH_LABEL": "Apr 24", "CRM Amt (20%)": 30635.3201, "PRES. AMT": 137858.9404, "Qty": 1104.0, "Sale as per PTR": 153176.6005}, {"MONTH_SORT": "2024-05", "MONTH_LABEL": "May 24", "CRM Amt (20%)": 39282.5148, "PRES. AMT": 176771.3165, "Qty": 1481.0, "Sale as per PTR": 196412.5738}, {"MONTH_SORT": "2024-06", "MONTH_LABEL": "Jun 24", "CRM Amt (20%)": 27419.8499, "PRES. AMT": 123389.3245, "Qty": 1137.0, "Sale as per PTR": 137099.2494}, {"MONTH_SORT": "2024-07", "MONTH_LABEL": "Jul 24", "CRM Amt (20%)": 40030.3826, "PRES. AMT": 180136.7215, "Qty": 1751.0, "Sale as per PTR": 200151.9128}, {"MONTH_SORT": "2024-08", "MONTH_LABEL": "Aug 24", "CRM Amt (20%)": 42147.8668, "PRES. AMT": 189665.4007, "Qty": 1829.0, "Sale as per PTR": 210739.3341}, {"MONTH_SORT": "2024-09", "MONTH_LABEL": "Sep 24", "CRM Amt (20%)": 31814.7768, "PRES. AMT": 143166.4954, "Qty": 1021.0, "Sale as per PTR": 159073.8838}, {"MONTH_SORT": "2024-10", "MONTH_LABEL": "Oct 24", "CRM Amt (20%)": 39877.1719, "PRES. AMT": 179447.2736, "Qty": 1494.0, "Sale as per PTR": 199385.8596}, {"MONTH_SORT": "2024-11", "MONTH_LABEL": "Nov 24", "CRM Amt (20%)": 33080.2513, "PRES. AMT": 148861.131, "Qty": 1479.0, "Sale as per PTR": 165401.2567}, {"MONTH_SORT": "2024-12", "MONTH_LABEL": "Dec 24", "CRM Amt (20%)": 39642.7535, "PRES. AMT": 178392.3908, "Qty": 1522.0, "Sale as per PTR": 198213.7676}, {"MONTH_SORT": "2025-01", "MONTH_LABEL": "Jan 25", "CRM Amt (20%)": 38916.0305, "PRES. AMT": 175122.1373, "Qty": 1282.0, "Sale as per PTR": 194580.1525}, {"MONTH_SORT": "2025-02", "MONTH_LABEL": "Feb 25", "CRM Amt (20%)": 44540.9772, "PRES. AMT": 200434.3976, "Qty": 1551.0, "Sale as per PTR": 222704.8862}, {"MONTH_SORT": "2025-03", "MONTH_LABEL": "Mar 25", "CRM Amt (20%)": 46418.7022, "PRES. AMT": 208884.1598, "Qty": 1316.0, "Sale as per PTR": 232093.5109}, {"MONTH_SORT": "2025-04", "MONTH_LABEL": "Apr 25", "CRM Amt (20%)": 57675.8034, "PRES. AMT": 259541.1153, "Qty": 2064.0, "Sale as per PTR": 288379.0169}, {"MONTH_SORT": "2025-05", "MONTH_LABEL": "May 25", "CRM Amt (20%)": 46064.3492, "PRES. AMT": 207289.5712, "Qty": 1592.0, "Sale as per PTR": 230321.7458}, {"MONTH_SORT": "2025-06", "MONTH_LABEL": "Jun 25", "CRM Amt (20%)": 60422.4218, "PRES. AMT": 271900.8981, "Qty": 2034.0, "Sale as per PTR": 302112.109}, {"MONTH_SORT": "2025-07", "MONTH_LABEL": "Jul 25", "CRM Amt (20%)": 54221.676, "PRES. AMT": 243997.5421, "Qty": 1743.0, "Sale as per PTR": 271108.3801}, {"MONTH_SORT": "2025-08", "MONTH_LABEL": "Aug 25", "CRM Amt (20%)": 59372.9724, "PRES. AMT": 267178.3758, "Qty": 1883.0, "Sale as per PTR": 296864.862}, {"MONTH_SORT": "2025-09", "MONTH_LABEL": "Sep 25", "CRM Amt (20%)": 79833.9482, "PRES. AMT": 359252.7668, "Qty": 2838.0, "Sale as per PTR": 399169.7409}, {"MONTH_SORT": "2025-10", "MONTH_LABEL": "Oct 25", "CRM Amt (20%)": 50718.2397, "PRES. AMT": 228232.0787, "Qty": 1612.0, "Sale as per PTR": 253591.1985}, {"MONTH_SORT": "2025-11", "MONTH_LABEL": "Nov 25", "CRM Amt (20%)": 44546.4983, "PRES. AMT": 200459.2424, "Qty": 1339.0, "Sale as per PTR": 222732.4915}, {"MONTH_SORT": "2025-12", "MONTH_LABEL": "Dec 25", "CRM Amt (20%)": 62165.4649, "PRES. AMT": 279744.592, "Qty": 1890.0, "Sale as per PTR": 310827.3245}, {"MONTH_SORT": "2026-01", "MONTH_LABEL": "Jan 26", "CRM Amt (20%)": 58406.6412, "PRES. AMT": 262829.8852, "Qty": 1693.0, "Sale as per PTR": 292033.2058}, {"MONTH_SORT": "2026-02", "MONTH_LABEL": "Feb 26", "CRM Amt (20%)": 64911.6605, "PRES. AMT": 273480.0995, "Qty": 1902.0, "Sale as per PTR": 303866.7772}, {"MONTH_SORT": "2026-03", "MONTH_LABEL": "Mar 26", "CRM Amt (20%)": 72472.1109, "PRES. AMT": 326124.499, "Qty": 2474.0, "Sale as per PTR": 362360.5545}, {"MONTH_SORT": "2026-04", "MONTH_LABEL": "Apr 26", "CRM Amt (20%)": 71649.0184, "PRES. AMT": 322420.5828, "Qty": 2271.0, "Sale as per PTR": 358245.092}, {"MONTH_SORT": "2026-05", "MONTH_LABEL": "May 26", "CRM Amt (20%)": 71418.0291, "PRES. AMT": 321381.1308, "Qty": 1996.0, "Sale as per PTR": 357090.1453}], "doctors": [{"DOCTOR_NAME": "Dr. S.N Rai", "CRM Amt (20%)": 356790.8596, "PRES. AMT": 1605558.868, "Qty": 9461.0}, {"DOCTOR_NAME": "Dr. INA YADAV", "CRM Amt (20%)": 100499.7821, "PRES. AMT": 452249.0194, "Qty": 2346.0}, {"DOCTOR_NAME": "Dr. AJIT GUPTA", "CRM Amt (20%)": 88751.4518, "PRES. AMT": 399381.5332, "Qty": 4270.0}, {"DOCTOR_NAME": "Dr. U.C GUPTA", "CRM Amt (20%)": 86901.6077, "PRES. AMT": 391057.2349, "Qty": 4705.0}, {"DOCTOR_NAME": "Dr. VIVEK CHETAL", "CRM Amt (20%)": 75461.6465, "PRES. AMT": 342652.6634, "Qty": 1478.0}, {"DOCTOR_NAME": "Dr. ATUL RAI", "CRM Amt (20%)": 58660.3777, "PRES. AMT": 263971.6998, "Qty": 1443.0}, {"DOCTOR_NAME": "Dr. PRASHANT SINGH", "CRM Amt (20%)": 58213.523, "PRES. AMT": 261960.8535, "Qty": 1771.0}, {"DOCTOR_NAME": "Dr. O.P CHAUHAN", "CRM Amt (20%)": 50132.615, "PRES. AMT": 225596.7676, "Qty": 1463.0}, {"DOCTOR_NAME": "Dr. Rajesh rai", "CRM Amt (20%)": 43665.7627, "PRES. AMT": 196495.9322, "Qty": 2018.0}, {"DOCTOR_NAME": "Dr. Manoj kumar sonakar", "CRM Amt (20%)": 37453.4237, "PRES. AMT": 168540.4068, "Qty": 987.0}], "products": [{"PRODUCT": "ASPIVIT-369 SYP", "CRM Amt (20%)": 424602.8208, "Qty": 6430.0}, {"PRODUCT": "ASPIVIT-369 DROP", "CRM Amt (20%)": 297536.2712, "Qty": 7748.0}, {"PRODUCT": "C-APP SYP", "CRM Amt (20%)": 153472.1429, "Qty": 7409.0}, {"PRODUCT": "CEPONET-CV", "CRM Amt (20%)": 69798.8571, "Qty": 2262.0}, {"PRODUCT": "CEPONET-100 DS", "CRM Amt (20%)": 63900.2857, "Qty": 3218.0}, {"PRODUCT": "ASPIVIT-D3 DROP", "CRM Amt (20%)": 63634.9831, "Qty": 3195.0}, {"PRODUCT": "NEXZITH-500 TAB", "CRM Amt (20%)": 46535.6571, "Qty": 2742.0}, {"PRODUCT": "ASPIVIT-L SYP", "CRM Amt (20%)": 35196.954, "Qty": 1855.0}, {"PRODUCT": "NAAZCOLD SUS", "CRM Amt (20%)": 20672.8571, "Qty": 998.0}, {"PRODUCT": "ASMETH FORTH TAB", "CRM Amt (20%)": 19626.3051, "Qty": 978.0}], "chemists": [{"CHEMIST": "OPAL MEDICINERS", "CRM Amt (20%)": 356790.8596, "Qty": 9461.0}, {"CHEMIST": "SHARDA NARAYAN PHARMACY", "CRM Amt (20%)": 100499.7821, "Qty": 2346.0}, {"CHEMIST": "JANSHEVA ", "CRM Amt (20%)": 88751.4518, "Qty": 4270.0}, {"CHEMIST": "Dr. U.C GUPTA", "CRM Amt (20%)": 86901.6077, "Qty": 4705.0}, {"CHEMIST": "SHANKAR MEDICAL", "CRM Amt (20%)": 70880.7748, "Qty": 1296.0}, {"CHEMIST": "ASTHA MEDICAL STORE", "CRM Amt (20%)": 58660.3777, "Qty": 1443.0}, {"CHEMIST": "Dr. PRASHANT SINGH", "CRM Amt (20%)": 58213.523, "Qty": 1771.0}, {"CHEMIST": "RAJ MEDICAL", "CRM Amt (20%)": 43094.3341, "Qty": 1918.0}, {"CHEMIST": "MAHAVIR DRUG", "CRM Amt (20%)": 36201.524, "Qty": 1313.0}, {"CHEMIST": "GARIMA MEDICAL", "CRM Amt (20%)": 33029.4828, "Qty": 1442.0}], "all_doctors": ["DR. C .S. SINGH", "DR. M.K SONKER", "DR. SANJAY SINGH", "DR. USUF NASIM", "DR.BRIJESH KUMAR", "DR.DEEPAK GUPTA", "DR.PRABHAT KUMAR", "Dr. A.K SINGH", "Dr. A.P VERMA", "Dr. AJIT GUPTA", "Dr. ATUL RAI", "Dr. C.M. RAI", "Dr. Charu Yadav", "Dr. D.N. RAI", "Dr. G.K RAI", "Dr. INA YADAV", "Dr. KALPANA SINGH", "Dr. M.K GUPTA", "Dr. MINAKSHI SINGH", "Dr. Manoj kumar sonakar", "Dr. O.P CHAUHAN", "Dr. PRASHANT SINGH", "Dr. R.B SINGH", "Dr. Rajesh kumar singh", "Dr. Rajesh rai", "Dr. S.N Rai", "Dr. S.N Rai (ENT)", "Dr. U.C GUPTA", "Dr. V.P SINGH", "Dr. VIVEK CHETAL", "Dr. VIVEK SINGH", "Dr. Yogeshwar Singh", "Dr. ramesh ", "Dr.PK PAL", "MAHENDRA SINGH & SONS"], "all_products": ["ASMETH FORTH TAB", "ASMETH-NP", "ASPIVIT PLUS ", "ASPIVIT-369 DROP", "ASPIVIT-369 SYP", "ASPIVIT-D3 DROP", "ASPIVIT-L SYP", "C-APP SYP", "CEFIGEN-O TAB", "CEPONET-100 DS", "CEPONET-200", "CEPONET-CV", "CETRIGEN-M SYRUP", "CETRIGEN-M TAB", "ESONEX DSR TAB", "FUROGEN-500", "HEPTORIUS SYP", "LYCOMET (S/G)", "MAYGUT CAP", "MAYGUT SACHET", "NAAZCOLD SUS", "NAAZCOLD TABLET", "NEXZITH-500 TAB", "REBIGEN - LS CAP", "RELIEVO - LS", "RELIEVO SYP", "RELIEVO-D SYP", "SHINE-EC", "TRYGEN-BRD", "VITANEX POWDER", "VOMINET SYP", "VOMINET TAB"], "all_chemists": ["AMIT MEDICAL", "ARMAN MEDICAL", "ASTHA MEDICAL STORE", "ASWANI BROTHER", "AYUSHMAN MEDICAL", "DIVISHA MEDICAL STORE", "DR. A.A SIDDIQUI", "DR. C .S. SINGH", "DR. M.K SONKER", "DR.BRIJESH KUMAR", "DR.G.K. RAI REVATIPUR", "DR.PRABHAT KUMAR", "Dr. C.M. RAI", "Dr. D.N. RAI", "Dr. G.K RAI", "Dr. Manoj kumar sonakar", "Dr. O.P CHAUHAN", "Dr. PRASHANT SINGH", "Dr. U.C GUPTA", "GARIMA MEDICAL", "GURU PRASHAD", "HEALING PHARMACY", "J.P GANGA", "JANSHEVA ", "KHATU HELTH CARE", "LALIT DRUG HOUSE", "LAXMI PHARMACY", "M.M MEDICAL", "MAA VAISHANAVI MEDICAL STORE", "MAHAVIR DRUG", "MAHENDRA SINGH & SONS", "MANJU NURSING HOME", "MEDICINE CENTER", "NEW DIAMOND PHARMA", "NEW R.K MEDICAL", "NEW SUPER MEDICAL", "OPAL MEDICINERS", "PRONEETA CENTER", "RAJ MEDICAL", "RAKSHA MEDICAL", "SAKYA MEDICAL STORE", "SHANKAR MEDICAL", "SHARDA NARAYAN PHARMACY", "SHRUTI PHARRMACY", "SHUBHYASH MEDICAL", "SINDH MEDICAL ", "SINGH MEDICAL STORE", "SUMAN MEDICAL STORE", "SUPAR MEDICAL STORE", "SURESH MEDICAL", "SURYODAYA MEDICAL", "THE SHASHI MEDICAL", "UPADHYA MEDICAL STORE", "VARAD MEDICAL", "VIVEKANAND MEDICAL", "WISDOM PHARMA", "chakrawal medical", "dumpy medical", "patel medical store"], "total_crm": 1309492.87, "total_pres": 5874095.54, "total_qty": 44370, "total_ptr": 6526772.82, "rows": 933};
+
+Chart.defaults.color = '#8a99b4';
+Chart.defaults.borderColor = '#1e2a42';
+Chart.defaults.font.family = 'Inter';
+const COLORS = ['#00c6ff','#f59e0b','#10b981','#8b5cf6','#ef4444','#06b6d4','#f97316','#84cc16','#a78bfa','#fb7185'];
+
+function fmt(n) {
+  if(n>=1e5) return '₹'+(n/1e5).toFixed(1)+'L';
+  if(n>=1e3) return '₹'+(n/1e3).toFixed(1)+'K';
+  return '₹'+n.toFixed(0);
+}
+function fmtFull(n) { return '₹'+n.toLocaleString('en-IN',{maximumFractionDigits:0}); }
+function num(n) { return n.toLocaleString('en-IN',{maximumFractionDigits:0}); }
+
+let charts = {};
+function destroyChart(id) { if(charts[id]) { charts[id].destroy(); delete charts[id]; } }
+
+function buildMonthlyTrend(data) {
+  destroyChart('trend');
+  const ctx = document.getElementById('monthlyTrendChart').getContext('2d');
+  const gCRM = ctx.createLinearGradient(0,0,0,300);
+  gCRM.addColorStop(0,'rgba(0,198,255,0.25)'); gCRM.addColorStop(1,'rgba(0,198,255,0)');
+  const gPres = ctx.createLinearGradient(0,0,0,300);
+  gPres.addColorStop(0,'rgba(245,158,11,0.2)'); gPres.addColorStop(1,'rgba(245,158,11,0)');
+  charts['trend'] = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels: data.map(d=>d.MONTH_LABEL),
+      datasets:[
+        {label:'CRM Amt (20%)',data:data.map(d=>d['CRM Amt (20%)']),borderColor:'#00c6ff',backgroundColor:gCRM,fill:true,tension:0.4,pointRadius:3,borderWidth:2,pointBackgroundColor:'#00c6ff'},
+        {label:'Prescription Amt',data:data.map(d=>d['PRES. AMT']),borderColor:'#f59e0b',backgroundColor:gPres,fill:true,tension:0.4,pointRadius:3,borderWidth:2,pointBackgroundColor:'#f59e0b'}
+      ]
+    },
+    options:{responsive:true,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{labels:{boxWidth:10,font:{size:11}}},tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+fmtFull(ctx.parsed.y)}}},
+      scales:{x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{font:{size:9}}},y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fmt(v),font:{size:9}}}}
+    }
+  });
+}
+
+function buildMonthlyQty(data) {
+  destroyChart('qty');
+  const ctx = document.getElementById('monthlyQtyChart').getContext('2d');
+  const g = ctx.createLinearGradient(0,0,0,200);
+  g.addColorStop(0,'rgba(16,185,129,0.8)'); g.addColorStop(1,'rgba(16,185,129,0.2)');
+  charts['qty'] = new Chart(ctx, {
+    type:'bar',
+    data:{labels:data.map(d=>d.MONTH_LABEL),datasets:[{label:'Qty Sold',data:data.map(d=>d.Qty),backgroundColor:g,borderRadius:3}]},
+    options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' Qty: '+num(ctx.parsed.y)}}},scales:{x:{grid:{display:false},ticks:{font:{size:9}}},y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{font:{size:9}}}}}
+  });
+}
+
+function buildProductPie(data) {
+  destroyChart('pie');
+  const ctx = document.getElementById('productPieChart').getContext('2d');
+  charts['pie'] = new Chart(ctx, {
+    type:'doughnut',
+    data:{labels:data.map(d=>d.PRODUCT),datasets:[{data:data.map(d=>d['CRM Amt (20%)']),backgroundColor:COLORS,borderWidth:1,borderColor:'#111622',hoverOffset:6}]},
+    options:{responsive:true,cutout:'62%',plugins:{legend:{position:'right',labels:{boxWidth:10,font:{size:10},padding:8}},tooltip:{callbacks:{label:ctx=>' '+ctx.label+': '+fmtFull(ctx.parsed)}}}}
+  });
+}
+
+function buildChemistChart(data) {
+  destroyChart('chemist');
+  const ctx = document.getElementById('chemistChart').getContext('2d');
+  charts['chemist'] = new Chart(ctx, {
+    type:'bar',
+    data:{labels:data.map(d=>d.CHEMIST.length>18?d.CHEMIST.substring(0,18)+'…':d.CHEMIST),datasets:[{label:'CRM Amount',data:data.map(d=>d['CRM Amt (20%)']),backgroundColor:COLORS,borderRadius:3}]},
+    options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmtFull(ctx.parsed.x)}}},scales:{x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fmt(v),font:{size:9}}},y:{grid:{display:false},ticks:{font:{size:10}}}}}
+  });
+}
+
+function buildDoctorBar(data) {
+  destroyChart('docbar');
+  const top7 = data.slice(0,7);
+  const ctx = document.getElementById('doctorBarChart').getContext('2d');
+  charts['docbar'] = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels:top7.map(d=>d.DOCTOR_NAME.replace('Dr. ','').replace('DR. ','')),
+      datasets:[
+        {label:'CRM Amt',data:top7.map(d=>d['CRM Amt (20%)']),backgroundColor:'rgba(0,198,255,0.7)',borderRadius:3},
+        {label:'Pres. Amt',data:top7.map(d=>d['PRES. AMT']),backgroundColor:'rgba(245,158,11,0.5)',borderRadius:3}
+      ]
+    },
+    options:{responsive:true,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{labels:{boxWidth:10,font:{size:10}}},tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+fmtFull(ctx.parsed.y)}}},
+      scales:{x:{grid:{display:false},ticks:{font:{size:9}}},y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fmt(v),font:{size:9}}}}
+    }
+  });
+}
+
+function buildPTRTrend(data) {
+  destroyChart('ptr');
+  const ctx = document.getElementById('ptrTrendChart').getContext('2d');
+  const g = ctx.createLinearGradient(0,0,0,250);
+  g.addColorStop(0,'rgba(139,92,246,0.3)'); g.addColorStop(1,'rgba(139,92,246,0)');
+  charts['ptr'] = new Chart(ctx, {
+    type:'line',
+    data:{labels:data.map(d=>d.MONTH_LABEL),datasets:[{label:'Sale as PTR',data:data.map(d=>d['Sale as per PTR']),borderColor:'#8b5cf6',backgroundColor:g,fill:true,tension:0.4,pointRadius:2,borderWidth:2,pointBackgroundColor:'#8b5cf6'}]},
+    options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' PTR Sale: '+fmtFull(ctx.parsed.y)}}},scales:{x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{font:{size:9}}},y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fmt(v),font:{size:9}}}}}
+  });
+}
+
+function buildDoctorTable(data) {
+  const maxCRM = data[0]['CRM Amt (20%)'];
+  const tbody = document.getElementById('doctorTableBody');
+  tbody.innerHTML = '';
+  data.forEach((d,i) => {
+    const rClass = i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'rank-n';
+    tbody.innerHTML += `<tr>
+      <td><span class="rank-badge ${rClass}">${i+1}</span></td>
+      <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.DOCTOR_NAME}</td>
+      <td class="amount-col" style="color:#00c6ff">${fmtFull(d['CRM Amt (20%)'])}</td>
+      <td class="amount-col" style="color:#f59e0b;font-size:11px">${fmtFull(d['PRES. AMT'])}</td>
+      <td>${num(d.Qty)}</td>
+    </tr>`;
+  });
+}
+
+function buildProductTable(data) {
+  const total = data.reduce((s,d)=>s+d['CRM Amt (20%)'],0);
+  const tbody = document.getElementById('productTableBody');
+  tbody.innerHTML = '';
+  data.forEach((d,i) => {
+    const pct = (d['CRM Amt (20%)']/total*100).toFixed(1);
+    const w = (d['CRM Amt (20%)']/data[0]['CRM Amt (20%)']*100).toFixed(0);
+    const col = COLORS[i%COLORS.length];
+    tbody.innerHTML += `<tr>
+      <td><span class="rank-badge rank-n">${i+1}</span></td>
+      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px">${d.PRODUCT}</td>
+      <td class="amount-col" style="color:${col};font-size:12px">${fmtFull(d['CRM Amt (20%)'])}</td>
+      <td>${num(d.Qty)}</td>
+      <td><div style="display:flex;align-items:center;gap:6px">
+        <div style="width:50px;height:5px;background:rgba(255,255,255,0.08);border-radius:3px">
+          <div style="width:${w}%;height:100%;background:${col};border-radius:3px"></div>
+        </div>
+        <span style="font-size:10px;color:var(--text-dim)">${pct}%</span>
+      </div></td>
+    </tr>`;
+  });
+}
+
+function updateKPIs(monthly) {
+  const crm  = monthly.reduce((s,d)=>s+d['CRM Amt (20%)'],0);
+  const pres = monthly.reduce((s,d)=>s+d['PRES. AMT'],0);
+  const qty  = monthly.reduce((s,d)=>s+d.Qty,0);
+  const ptr  = monthly.reduce((s,d)=>s+d['Sale as per PTR'],0);
+  document.getElementById('kpi-crm').textContent  = fmtFull(crm);
+  document.getElementById('kpi-pres').textContent = fmtFull(pres);
+  document.getElementById('kpi-qty').textContent  = num(qty);
+  document.getElementById('kpi-ptr').textContent  = fmtFull(ptr);
+  document.getElementById('kpi-crm-sub').textContent  = `Across ${monthly.length} months`;
+  document.getElementById('kpi-pres-sub').textContent = `Avg ${fmtFull(pres/monthly.length)}/mo`;
+  document.getElementById('kpi-qty-sub').textContent  = `Avg ${Math.round(qty/monthly.length)} units/mo`;
+  document.getElementById('kpi-ptr-sub').textContent  = `Avg ${fmtFull(ptr/monthly.length)}/mo`;
+}
+
+function populateFilters() {
+  const ds = document.getElementById('filterDoctor');
+  const dp = document.getElementById('filterProduct');
+  const dc = document.getElementById('filterChemist');
+  const mf = document.getElementById('filterMonthFrom');
+  const mt = document.getElementById('filterMonthTo');
+  RAW.all_doctors.forEach(d=>{ const o=document.createElement('option'); o.value=d; o.textContent=d; ds.appendChild(o); });
+  RAW.all_products.forEach(p=>{ const o=document.createElement('option'); o.value=p; o.textContent=p; dp.appendChild(o); });
+  RAW.all_chemists.forEach(c=>{ const o=document.createElement('option'); o.value=c; o.textContent=c; dc.appendChild(o); });
+  RAW.monthly.forEach(m=>{
+    const of=document.createElement('option'); of.value=m.MONTH_SORT; of.textContent=m.MONTH_LABEL; mf.appendChild(of);
+    const ot=document.createElement('option'); ot.value=m.MONTH_SORT; ot.textContent=m.MONTH_LABEL; mt.appendChild(ot);
+  });
+}
+
+function applyFilters() {
+  const mFrom = document.getElementById('filterMonthFrom').value;
+  const mTo   = document.getElementById('filterMonthTo').value;
+  let monthly = RAW.monthly;
+  if(mFrom) monthly = monthly.filter(d=>d.MONTH_SORT>=mFrom);
+  if(mTo)   monthly = monthly.filter(d=>d.MONTH_SORT<=mTo);
+  updateKPIs(monthly);
+  buildMonthlyTrend(monthly);
+  buildMonthlyQty(monthly);
+  buildPTRTrend(monthly);
+}
+
+function resetFilters() {
+  ['filterDoctor','filterProduct','filterChemist','filterMonthFrom','filterMonthTo'].forEach(id=>document.getElementById(id).value='');
+  initDashboard();
+}
+
+function initDashboard() {
+  updateKPIs(RAW.monthly);
+  buildMonthlyTrend(RAW.monthly);
+  buildMonthlyQty(RAW.monthly);
+  buildProductPie(RAW.products);
+  buildChemistChart(RAW.chemists);
+  buildDoctorBar(RAW.doctors);
+  buildPTRTrend(RAW.monthly);
+  buildDoctorTable(RAW.doctors);
+  buildProductTable(RAW.products);
+}
+
+populateFilters();
+initDashboard();
+</script>
+</body>
+</html>
